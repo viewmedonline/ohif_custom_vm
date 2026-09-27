@@ -246,59 +246,37 @@ Docs][deployment-docs]
 
 ## Developing with VIEWMED Proxy
 
-This project includes a caching nginx proxy that proxies to the VIEWMED PACS
-(`developer.viewmedonline.com`). The proxy caches DICOM frames and metadata to
+This project includes a caching nginx proxy that proxies to the development PACS
+(`https://pacs.viewmed-services.com/dcm4chee-arc/`). The proxy caches DICOM frames and metadata to
 significantly reduce load times — similar to MedDream's behavior.
 
-### Prerequisites
+Both the proxy and viewer must run together. The browser uses same-origin
+`/pacs/...` URLs; the viewer server forwards them to nginx, which retrieves
+the DICOMweb endpoints at `/dcm4chee-arc/aets/VIEWMED/`. The PACS `/ui2`
+route is its administrative UI, not the imaging API.
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose installed
-- Node.js 20+ and Yarn 1.20+ (see [Requirements](#requirements))
-- Dependencies installed: `yarn install --frozen-lockfile`
+### Replit (no Docker)
 
-### Step 1 — Start the Nginx Proxy
+Use the configured web workflow, which runs `bash .scripts/dev-replit.sh`.
+It starts the nginx proxy on port 8080 and the OHIF development server on
+port 5000 in one supervised process. See [replit.md](replit.md) for details.
+Requires Node.js 20, Yarn, nginx, and installed workspace dependencies.
 
-The proxy runs in Docker and handles all DICOMweb traffic with aggressive caching.
-
-```bash
-# Build and start only the proxy service
-docker compose up -d proxy
-
-# Verify it is healthy
-curl http://localhost:8080/health
-# Expected: "healthy"
-```
-
-The proxy listens on port `8080` and forwards requests to the VIEWMED PACS over HTTPS.
-Cache is persisted in the `nginx-cache` Docker volume.
-
-### Step 2 — Start OHIF in Development Mode
-
-With the proxy running, start the OHIF dev server:
+### Docker Compose
 
 ```bash
-# Set the VIEWMED config and start dev server
-APP_CONFIG=config/viewmed.js yarn dev
+docker compose up --build
 ```
 
-Or export the variable first:
+This starts the viewer at `http://localhost:3000` and proxy at
+`http://localhost:8080`. The viewer container forwards `/pacs/` to the proxy
+container. The `nginx-cache` volume preserves cached images across restarts.
 
-```bash
-export APP_CONFIG=config/viewmed.js
-yarn dev
-```
-
-The dev server starts at `http://localhost:3000`.
-
-### Step 3 — Verify the Setup
-
-1. Open `http://localhost:3000` in your browser
-2. The study list should load from the VIEWMED PACS
-3. Open a study — images should load progressively
-4. Check cache status in browser DevTools → Network tab:
-   - Look for `X-Cache-Status: HIT` on repeated requests
-   - First load = `MISS` (fetched from PACS)
-   - Second load = `HIT` (served from nginx cache)
+Check `http://localhost:8080/health` for proxy liveness. Then request
+`http://localhost:3000/pacs/aets/VIEWMED/rs/studies?limit=1` to check the
+complete chain. Repeated successful responses should have `X-Cache-Status:
+HIT` (after the initial `MISS`). Do not expose patient data through a public
+preview without access controls.
 
 ### Monitoring Cache Performance
 

@@ -143,6 +143,8 @@ module.exports = (env, argv) => {
     ],
     // https://webpack.js.org/configuration/dev-server/
     devServer: {
+      host: '0.0.0.0',
+      allowedHosts: 'all',
       // gzip compression of everything served
       // Causes Cypress: `wait-on` issue in CI
       // compress: true,

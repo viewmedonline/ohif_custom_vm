@@ -96,10 +96,10 @@ window.config = {
       configuration: {
         friendlyName: 'VIEWMED PACS',
         name: 'VIEWMED',
-        // Usar el proxy nginx en localhost:8080
-        wadoUriRoot: 'http://localhost:8080/pacs/aets/VIEWMED/wado',
-        qidoRoot: 'http://localhost:8080/pacs/aets/VIEWMED/rs',
-        wadoRoot: 'http://localhost:8080/pacs/aets/VIEWMED/rs',
+        // Mismo origen: el servidor del visor reenvía /pacs al proxy nginx.
+        wadoUriRoot: '/pacs/aets/VIEWMED/wado',
+        qidoRoot: '/pacs/aets/VIEWMED/rs',
+        wadoRoot: '/pacs/aets/VIEWMED/rs',
         qidoSupportsIncludeField: true,
         imageRendering: 'wadors',
         thumbnailRendering: 'wadors',

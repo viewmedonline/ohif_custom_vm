@@ -12,6 +12,7 @@ coverage/
 .docz/
 .yarn/
 .nx/
+.cache/nginx/
 addOns/yarn.lock
 playwright-report/
 
